@@ -565,19 +565,19 @@ var Settings = JSON.parse(
 if (!Settings) Settings = {}
 
 if (!("acceptRemoteCommands" in Settings))
-  Settings["acceptRemoteCommands"] = true;
+  Settings["acceptRemoteCommands"] = false;
 
 if (!("portNumber" in Settings))
   Settings["portNumber"] = -1;
 
 if (!("autoUnmuteSeconds" in Settings))
-  Settings["autoUnmuteSeconds"] = 30;
+  Settings["autoUnmuteSeconds"] = -1;
 
 if (!("idleSeconds" in Settings))
-  Settings["idleSeconds"] = 60;
+  Settings["idleSeconds"] = -1;
 
 if (!("hideBottomPanel" in Settings))
-  Settings["hideBottomPanel"] = false;
+  Settings["hideBottomPanel"] = true;
 
 // no persistence: roomName must be supplied by user
 delete Settings["roomName"];
@@ -619,7 +619,7 @@ checkboxAcceptRemote.onclick = function() {
 checkboxAcceptRemote.onclick();
 
 // setting: portNumber
-var presetsPortNumber = [-1, 65535, 5000];
+var presetsPortNumber = [-1, 65535, -1];
 inputPortNumber.value = valid_integer(
   Settings["portNumber"], ...presetsPortNumber);
 inputPortNumber.onchange = function() {
@@ -631,7 +631,7 @@ inputPortNumber.onchange = function() {
 inputPortNumber.onchange();
 
 // setting: autoUnmuteSeconds
-var presetsAutoUnmute = [-1, 14400, 60];
+var presetsAutoUnmute = [-1, 14400, -1];
 inputAutoUnmuteSeconds.value = valid_integer(
   Settings["autoUnmuteSeconds"], ...presetsAutoUnmute);
 inputAutoUnmuteSeconds.onchange = function() {
@@ -643,7 +643,7 @@ inputAutoUnmuteSeconds.onchange = function() {
 inputAutoUnmuteSeconds.onchange();
 
 // setting: idleSeconds
-var presetsIdle = [-1, 900, 60];
+var presetsIdle = [-1, 900, -1];
 inputIdleSeconds.value = valid_integer(
   Settings["idleSeconds"], ...presetsIdle);
   inputIdleSeconds.onchange = function() {
@@ -755,6 +755,7 @@ Commands.push({
   },
   "callable": function(val, src) {
     api.isAudioMuted().then(muted => {
+      console.log("audio mute =", muted, "want =", val);
       val = (parseInt(val) == true);
       if (muted != val) {
         console.log("mic, setting to", val);
@@ -777,8 +778,8 @@ Commands.push({
     return Settings["acceptRemoteCommands"];
   },
   "callable": function(val, src) {
-    if (!Settings["acceptRemoteCommands"]) return false;
     api.isVideoMuted().then(muted => {
+      console.log("video mute =", muted, "want =", val);
       val = (parseInt(val) == true);
       if (muted != val) {
         console.log("cam, setting to", val);
