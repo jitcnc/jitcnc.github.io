@@ -591,7 +591,8 @@ var Params=[
   {"name": "acceptRemoteCommands", "type": "single"},
   {"name": "portNumber", "type": "single"},
   {"name": "autoUnmuteSeconds", "type": "single"},
-  {"name": "idleSeconds", "type": "single"}
+  {"name": "idleSeconds", "type": "single"},
+  {"name": "hideBottomPanel", "type": "single"}
 ]
 
 Params.forEach(function(obj){
@@ -656,6 +657,10 @@ inputIdleSeconds.value = valid_integer(
   settings_set("idleSeconds", idleSeconds);
 }
 inputIdleSeconds.onchange();
+
+// settings: hideBottomPanel
+//  no ui component
+Settings["hideBottomPanel"] = valid_boolean(Settings["hideBottomPanel"]);
 
 /*
 
