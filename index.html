@@ -1197,7 +1197,13 @@ function auto_unmute() {
     callee.either_muted = false;
     return false;
   } 
-  
+
+  // only enabled if remote commands accepted
+  if (!Settings["acceptRemoteCommands"]) {
+    callee.either_muted = false;
+    return false;
+  }
+
   // disable if system is idle
   if (detect_idle["idle_entered"]) {
     callee.either_muted = false;
