@@ -1,0 +1,1642 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no">
+
+<link rel="icon" href="data:;base64,=">
+
+<script src='https://meet.jit.si/external_api.js'></script>
+
+<style>
+
+/* 
+
+generic css styles
+
+* some resets
+* bootstrap-based
+
+*/
+
+html, body {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  color: white;
+}
+
+body {
+  font-size: 16px;
+  font-family: Arial, Helvetica, sans-serif;
+  overflow: hidden;
+  background-color: rgba(71,71,71,1);
+}
+
+a { color: white; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
+  text-align: center;
+}
+
+pre { margin: 0; padding: 0; }
+
+button {
+  margin: 0.1rem;
+}
+
+li.badge {
+  border-radius: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  margin-bottom: 0.1rem;
+}
+
+.text-center { text-align: center; }
+.small, small { font-size: 0.75rem; }
+.flex-row { display: flex; flex-direction: row; }
+.flex-col { display: flex; flex-direction: column; }
+
+.pane ol, 
+.pane ul {
+  padding: 0.2rem 0;
+  margin: 0;
+  list-style-type: none;
+}
+
+.flex-align-center {
+  align-items: center;
+}
+
+.flex-justify-center {
+  justify-content: center;
+} 
+
+section {
+  background-color: #474747;
+}
+
+/* bubble notifications */
+
+#rail-bubbles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  background: white;
+  height: 500vh;
+  overflow: visible;
+  flex-direction: column-reverse;
+  margin-top: auto;
+  justify-content: flex-end;
+}
+
+.bubble {
+  width: max-content;
+  max-width: 100vw;
+
+  transition:
+    margin 3.0s linear,
+    max-height 6.0s linear;
+
+  margin: 0;
+  max-height: 0%;
+  overflow: hidden;  
+
+  margin-bottom: 0.2rem;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.bubble.show { max-height: 100%; }
+
+.bubble .frame {
+  border-radius: 1.0rem;
+  padding: 0.8rem;
+  margin: 0 0.4rem;
+  font-size: 1.5rem;
+  background: rgba(4, 98, 178, 0.8);
+}
+
+.bubble .frame.join {
+  background: rgba(4, 110, 4, 0.8);
+}
+
+.bubble .frame.left {
+  background: rgba(110, 4, 4, 0.8);
+}
+
+.bubble .frame.status {
+  color: black;
+  font-style: italic;
+  background: rgba(247, 202, 24, 0.6);
+}
+
+.bubble .frame.debug {
+  border-radius: 0;
+  font-size: 0.8rem;
+  padding: 0.2rem;
+  margin: 0.2rem;
+  color: black;
+  background: rgba(234, 234, 234, 0.75);
+}
+
+/* top panel: title, settings */
+
+h1 { cursor: pointer; }
+
+#cnc-top {
+  background: rgb(71,71,71);
+  background: linear-gradient(0deg, rgba(71,71,71,1) 0%, rgba(112,112,112,1) 100%);
+}
+
+.settings > * {
+  margin: 0.1rem 0.3rem;
+  display: flex;
+  align-items: center;
+}
+
+#input-autounmute-seconds { width: 25px; }
+#input-port-number { width: 40px; }
+#input-idle-seconds { width: 25px; }
+.label-seconds { margin-left: 0.15rem; }
+
+/* middle panel: jitsi frame OR fatal error display */
+
+#jitsi-frame { width: 100%; }
+
+/* bottom panel */
+
+.empty-check+div.when-empty { display:none; }
+.empty-check:empty+div.when-empty { display:block; padding-top: 0.2rem; }
+.empty-check:empty { display:none; }
+
+#cnc-bottom {
+  background: rgb(71,71,71);
+  background: linear-gradient(180deg, rgba(71,71,71,1) 0%, rgba(112,112,112,1) 100%);
+  box-shadow: -5px 5px black;
+  overflow: hidden;
+}
+
+#cnc-bottom .pane {
+  height: 200px;
+  padding: 0.2rem;
+  box-sizing: border-box;
+  flex: 1;
+  overflow: auto;
+}
+
+/* bottom: recent messages */
+
+#pane-chat { display:none; }
+
+#recent-messages li {
+  background: #0462b2;
+  color: white;
+}
+
+/* bottom: participants */
+
+#participants-list {
+  text-align: center;
+}
+
+#participants-list li {
+  display: inline-block;
+}
+
+li.participant {
+  margin-right: 0.1rem;
+  background: gray;
+  cursor: pointer;
+}
+
+li.participant.responded {
+  background: green;
+  color: white;
+}
+
+/* bottom: remote control (rc) */
+
+.control-group {
+  display: inline-block;
+  padding: 0.2rem;
+  margin: 0.1rem;
+  background: black;
+}
+
+.control-group label {
+  margin: 0.1rem 0.25rem;
+}
+
+/* responsive control panel / dashboard */
+
+.show-on-mobile {
+  display: block;
+}
+.hide-on-mobile {
+  display: none;
+}
+
+.flex-break {
+  flex-basis: 100%;
+  height: 0;
+  width: 100%;
+}
+
+#cnc-top .settings {
+  flex-wrap: wrap;
+  white-space: nowrap;  
+}
+
+#cnc-top {
+  transition: height 0.5s ease;
+  height: 100px;
+}
+#jitsi-frame {
+  transition: height 0.5s ease;
+  height: calc(100% - 350px);
+}
+#cnc-bottom {
+  opacity: 1.0;
+  transition:
+    height 0.5s ease,
+    opacity 1.0s ease;
+  height: 250px;
+}
+#cnc-error {
+  transition: height 0.5s ease;
+  height: calc(100% - 350px);
+}
+
+body.cnc-hidden #cnc-bottom { height: 0; opacity: 0; }
+body.cnc-hidden #jitsi-frame,
+body.cnc-hidden #cnc-error { 
+  height: calc(100% - 100px); 
+}
+
+@media screen and (min-width: 800px) {
+  span.hide-on-mobile {
+    display: inline;
+  }  
+  .flex-break {
+    display: none;
+  }
+  #cnc-top {
+    height: 50px;
+  }
+  #jitsi-frame {
+    height: calc(100% - 250px);
+  }
+  #cnc-bottom {
+    height: 200px;
+  }
+  #cnc-error {
+    height: calc(100% - 250px);
+  }
+
+  body.cnc-hidden #jitsi-frame,
+  body.cnc-hidden #cnc-error { 
+    height: calc(100% - 50px); 
+  }  
+}
+
+/* error display */
+
+.on-error { display: none; }
+body.has-error .no-error { display:none; }
+body.has-error .on-error { display:block; }
+body.has-error .on-error.flex-col { display: flex; }
+
+</style>
+
+</head>
+
+<body>
+
+<div id="rail-bubbles" class="flex-col"></div>
+
+<section
+  id="cnc-top"
+  class="flex-col flex-justify-center">
+  <div class="settings
+              flex-row
+              flex-align-center 
+              flex-justify-center">
+    <h1
+      title="Jitsi Command &amp; Control"
+      onclick="javascript: toggle_bottom_panel();">
+      Jit-CnC
+    </h1>
+    <div class="flex-break show-on-mobile"></div>
+    <div class="small">
+      <input
+        id="checkbox-accept-remote"
+        type="checkbox" />
+      <label
+        for="checkbox-accept-remote"
+        title="check to accept remote commands">
+        allow remote
+      </label>
+    </div>
+    <div class="small">
+      <label
+        for="input-autounmute-seconds"
+        title="unmute audio/video after 1-14400 seconds, -1 = disabled">
+        auto-unmute
+      </label>
+      &nbsp;
+      <input
+        id="input-autounmute-seconds"
+        class="small"
+        type="text"
+        value="" />
+      <span class="label-seconds">secs</span>
+    </div>
+    <div class="flex-break show-on-mobile"></div>    
+    <div class="small">
+      <label
+        for="input-port-number"
+        title="port on localhost">
+        localrpc port
+      </label>
+      &nbsp;
+      <input
+        id="input-port-number"
+        class="small"
+        type="text"
+        value="" />
+    </div>
+    <div class="small">
+      <label
+        for="input-idle-seconds"
+        title="idle after 10-900 seconds, -1 = disabled">
+        idle
+      </label>
+      &nbsp;
+      <input
+        id="input-idle-seconds"
+        class="small"
+        type="text"
+        value="" />
+      <span class="label-seconds">secs</span>
+    </div>
+  </div>
+</section>
+<section
+  id="jitsi-frame"
+  class="no-error"
+></section>
+<section
+  id="cnc-error"
+  class="on-error
+         flex-col
+         flex-align-center
+         flex-justify-center">
+  <h2>
+    <span id="halt-title">whoops!</span>
+  </h2>
+  <p>
+    <strong>
+      <span id="halt-message">something bad happened</span>
+    </strong>
+  </p>
+  <p class="small text-center">
+    <a href="https://kinabalucoders.org">Kinabalu Coders</a>
+    &middot;
+    <code>#KitaBikin</code>
+    &middot;
+    powered by <a href="https://meet.jit.si/">meet.jit.si</a>
+  </p>
+</section>  
+<section
+  id="cnc-bottom"
+  class="flex-row">
+  <div id="pane-chat" class="pane">
+    <h4 class="text-center">
+      chats
+      <span class="hide-on-mobile"> - newest on top</span>
+    </h5>
+    <ol
+      id="recent-messages"
+      class="empty-check"
+    ></ol>
+    <div class="when-empty small text-center">
+      none.. yet
+    </div>
+  </div>
+  <div id="pane-participants" class="pane">
+    <h4 class="text-center">
+      others:
+      <span id="participants-count">?</span>
+    </h5>
+    <ul
+      id="participants-list"
+      class="text-center empty-check"
+    ></ul>
+    <div class="when-empty small text-center">
+      none.. yet
+    </div>
+  </div>
+  <div id="pane-remote" class="pane">
+    <h4 class="text-center">
+      remote <span class="hide-on-mobile">control</span>
+    </h5>
+    <div
+      id="remote-id"
+      class="small text-center"
+    ></div>
+    <div
+      id="remote-control"
+      class="text-center empty-check"
+    ></div>
+    <div class="when-empty small text-center">
+      please select
+    </div>
+  </div>
+</section>
+
+<script>
+
+/*
+
+pre-setup:
+
+* DOM references
+* utility functions
+
+*/
+
+var // ui components
+    participantsCount = document.querySelector("#participants-count"),
+    Participants = document.querySelector("#participants-list"),
+    recentMessages = document.querySelector("#recent-messages"),
+    remoteId = document.querySelector("#remote-id"),
+    remoteControl = document.querySelector("#remote-control"),
+    railBubbles = document.querySelector("#rail-bubbles"),
+
+    // jitsi
+    Jitsi = document.querySelector('#jitsi-frame'),
+
+    // settings
+    checkboxAcceptRemote = document.querySelector('#checkbox-accept-remote'),
+    inputPortNumber = document.querySelector('#input-port-number'),
+    inputAutoUnmuteSeconds = document.querySelector("#input-autounmute-seconds"),
+    inputIdleSeconds = document.querySelector("#input-idle-seconds"),
+
+    // cache some content (for visual reset)
+    remoteId_original = remoteId.innerHTML,
+    remoteControl_original = remoteControl.innerHTML;
+
+function terminate_with_message(message, title){
+  if (title) document.querySelector("#halt-title").innerHTML = title;
+  document.querySelector("#halt-message").innerHTML = message;
+  document.querySelector("body").classList.add("has-error");
+  throw new Error(message);
+};
+
+function settings_set(key, val) {
+  Settings[key] = val;
+  window.localStorage.setItem(
+    'cnc-settings', JSON.stringify(Settings));
+  console.log("settings", key, val);
+};
+
+function valid_integer(val, min, max, def) {
+  val = parseInt(val);
+  if (isNaN(val)) return def;
+  if (val < min) return min;
+  if (val > max) return max;
+  return val;
+};
+
+function valid_boolean(val) {
+  if (typeof(val) === "boolean") return val;
+
+  if (typeof(val) == "string") {
+    var _val = val.toLowerCase().trim();
+    if (_val == "true") return true;
+    if (_val == "false") return false;
+  }
+
+  val = parseInt(val);
+  if (isNaN(val)) return false;
+    else if (val) return true;
+    else return false;
+};
+
+// https://stackoverflow.com/a/8876069
+function get_vh(){
+  return Math.max(
+    document.documentElement.clientHeight 
+    || 0, window.innerHeight || 0);
+};
+
+// https://dev.to/stereobooster/fetch-with-a-timeout-3d6
+const timeoutableFetch = (url, options = {}) => {
+  let { timeout = 2000, ...rest } = options;
+  if (rest.signal) throw new Error("Signal not supported in timeoutable fetch");
+  const controller = new AbortController();
+  const { signal } = controller;
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error("Timeout for Promise"));
+      controller.abort();
+    }, timeout);
+    fetch(url, { signal, ...rest })
+      .finally(() => clearTimeout(timer))
+      .then(resolve, reject);
+  });
+};
+
+/*
+load Settings from localStorage
+initialise defaults when keys do not exist
+*/
+
+var Settings = JSON.parse(
+      window.localStorage.getItem('cnc-settings'));
+
+if (!Settings) Settings = {}
+
+if (!("acceptRemoteCommands" in Settings))
+  Settings["acceptRemoteCommands"] = true;
+
+if (!("portNumber" in Settings))
+  Settings["portNumber"] = -1;
+
+if (!("autoUnmuteSeconds" in Settings))
+  Settings["autoUnmuteSeconds"] = 30;
+
+if (!("idleSeconds" in Settings))
+  Settings["idleSeconds"] = 60;
+
+if (!("hideBottomPanel" in Settings))
+  Settings["hideBottomPanel"] = false;
+
+// no persistence: roomName must be supplied by user
+delete Settings["roomName"];
+
+// Settings can be overridden via url query parameters
+
+var inQueryString = new URLSearchParams(window.location.search);
+
+var Params=[
+  {"name": "roomName", "type": "single"},
+  {"name": "acceptRemoteCommands", "type": "single"},
+  {"name": "portNumber", "type": "single"},
+  {"name": "autoUnmuteSeconds", "type": "single"},
+  {"name": "idleSeconds", "type": "single"}
+]
+
+Params.forEach(function(obj){
+  var val = false;
+  if (inQueryString.has(obj.name)) {
+    if (obj.type == "list")
+      Settings[obj.name] = inQueryString.getAll(obj.name);
+    else
+      Settings[obj.name] = inQueryString.get(obj.name);
+  }
+});
+
+/* 
+validate all Settings
+also add DOM handlers for related DOM form elements
+*/
+
+// setting: acceptRemoteCommands
+checkboxAcceptRemote.checked = valid_boolean(
+  Settings["acceptRemoteCommands"]);
+checkboxAcceptRemote.onclick = function() {
+  settings_set("acceptRemoteCommands", checkboxAcceptRemote.checked);
+}
+checkboxAcceptRemote.onclick();
+
+// setting: portNumber
+var presetsPortNumber = [-1, 65535, 5000];
+inputPortNumber.value = valid_integer(
+  Settings["portNumber"], ...presetsPortNumber);
+inputPortNumber.onchange = function() {
+  var portNumber = valid_integer(
+    inputPortNumber.value, ...presetsPortNumber);
+  inputPortNumber.value = portNumber;
+  settings_set("portNumber", portNumber);
+}
+inputPortNumber.onchange();
+
+// setting: autoUnmuteSeconds
+var presetsAutoUnmute = [-1, 14400, 60];
+inputAutoUnmuteSeconds.value = valid_integer(
+  Settings["autoUnmuteSeconds"], ...presetsAutoUnmute);
+inputAutoUnmuteSeconds.onchange = function() {
+  var autoUnmuteSeconds = valid_integer(
+    inputAutoUnmuteSeconds.value, ...presetsAutoUnmute);
+  inputAutoUnmuteSeconds.value = autoUnmuteSeconds;
+  settings_set("autoUnmuteSeconds", autoUnmuteSeconds);
+}
+inputAutoUnmuteSeconds.onchange();
+
+// setting: idleSeconds
+var presetsIdle = [-1, 900, 60];
+inputIdleSeconds.value = valid_integer(
+  Settings["idleSeconds"], ...presetsIdle);
+  inputIdleSeconds.onchange = function() {
+  var idleSeconds = valid_integer(
+    inputIdleSeconds.value, ...presetsIdle);
+    inputIdleSeconds.value = idleSeconds;
+  if (idleSeconds < 10) {
+    // special case -1..10 = disabled (-1)    
+    idleSeconds = inputIdleSeconds.value = -1;
+  }
+  settings_set("idleSeconds", idleSeconds);
+}
+inputIdleSeconds.onchange();
+
+/*
+
+CnC command definition
+
+* loaded later into CnC namespace
+* "options" sent as part of response for 
+  GET_CAPS when requested, used to
+  generate mini remote control panel
+* "allowed" used to check whether command
+  is available/executable locally - if not set, 
+  defaults to allowed
+* "label" used to override "name" for 
+  visual display, usually for mini 
+  remote control panel grouping
+
+*/
+
+Commands=[]
+
+Commands.push({
+  "name": "PING",
+  "options": [
+    {"params": "", "label": "send"}
+  ],
+  "callable": function(src) {
+    CnC.send(src, "PONG");
+  }
+});
+
+Commands.push({
+  "name": "PONG",
+  "callable": function() {
+    var args = Array.prototype.slice.call(arguments),
+        src = args.pop();
+
+    var P = Participants.querySelector(".participant-" + src);
+    if (P) P.dataset.responded = (new Date()).getTime();
+
+    console.log("PING response from", src);
+  }
+});
+
+Commands.push({
+  "name": "GET_CAPS",
+  "callable": function(src) {
+    var CAPS = [];
+
+    for (var i=0; i<Commands.length; i++) {
+      var command = Commands[i];
+
+      if (!command["options"] || !command["callable"]) continue;
+
+      // check whether command is allowed
+      if (command["allowed"] && !command["allowed"]()) continue;
+
+      var name = command["name"],
+          label = command["name"],
+          options = command["options"];
+
+      if ('label' in command) label = command["label"];
+
+      CAPS.push({
+        "label": label,
+        "command": name,
+        "options": options
+      });
+    }; // end: for(Commands)
+
+    CnC.send(src, "SET_REMOTE_CAPS "
+      + encodeURIComponent(JSON.stringify(CAPS)));
+
+  }
+});
+
+Commands.push({
+  "name": "SET_REMOTE_CAPS",
+  "callable": function(CAPS, src) {
+    remote_caps_render(CAPS, src);
+  }
+});
+
+Commands.push({
+  "name": "SET_MIC_MUTE",
+  "label": "AUDIO",
+  "options": [
+    {"params": "1", "label": "mute"},
+    {"params": "0", "label": "unmute"}
+  ],
+  "allowed": function() {
+    return Settings["acceptRemoteCommands"];
+  },
+  "callable": function(val, src) {
+    api.isAudioMuted().then(muted => {
+      val = (parseInt(val) == true);
+      if (muted != val) {
+        console.log("mic, setting to", val);
+        api.executeCommand("toggleAudio");
+      } else {
+        console.log("mic, already set", val);
+      }
+    });
+  }
+});
+
+Commands.push({
+  "name": "SET_CAM_MUTE",
+  "label": "VIDEO",
+  "options": [
+    {"params": "1", "label": "mute"},
+    {"params": "0", "label": "unmute"}
+  ],
+  "allowed": function() {
+    return Settings["acceptRemoteCommands"];
+  },
+  "callable": function(val, src) {
+    if (!Settings["acceptRemoteCommands"]) return false;
+    api.isVideoMuted().then(muted => {
+      val = (parseInt(val) == true);
+      if (muted != val) {
+        console.log("cam, setting to", val);
+        api.executeCommand("toggleVideo");
+      } else {
+        console.log("cam, already set", val);
+      }
+    });
+  }
+});
+
+Commands.push({
+  "name": "PASSTHRU_LOCAL",
+  "label": "LOCAL",
+  "options": [
+    {"params": "status", "label": "status"}
+  ],
+  "allowed": function() {
+    if (!Settings["acceptRemoteCommands"]) return false;
+    if (Settings["portNumber"] <= 0) return false;
+    return true;
+  },
+  "callable": function(val, src) {
+    if (!Settings["acceptRemoteCommands"]) return false;
+    if (Settings["portNumber"] <= 0) return false;
+    // return response from localrpc server
+    var url = "http://localhost:" + Settings["portNumber"] + "/" + val;
+    timeoutableFetch(url, {timeout: 1500})
+      .then(response => response.json())
+      .then(data => {
+        CnC
+          .send(src, "PASSTHRU_REMOTE "
+            + encodeURIComponent(
+              JSON.stringify(data)));
+      })
+      .catch(err => {
+        console.log("timeoutableFetch", err.message, url);
+        CnC
+          .send(src, "PASSTHRU_REMOTE "
+            + encodeURIComponent(
+              JSON.stringify(
+                ["timeoutableFetch", err.message, url])));
+      });
+  }
+});
+
+Commands.push({
+  "name": "PASSTHRU_REMOTE",
+  "callable": function() {
+    var args = Array.prototype.slice.call(arguments),
+        src = args.pop(),
+        data = JSON.parse(decodeURIComponent(args.pop()));
+
+    bubbles_notify(
+      "<pre>" + JSON.stringify(data, null, 2) + "</pre>",
+      "debug");
+
+    console.log("PASSTHRU_REMOTE", data, "from", src);
+  }
+});
+
+/* 
+initialise CnC namespace
+*/
+
+var CnC = window["CnC"] = {};
+
+// populate CnC namespace with all commands
+// dev: command["name"] should be UPPERCASE
+for (var i=0; i<Commands.length; i++) {
+  var command = Commands[i];
+  CnC[command["name"]] = command["callable"];
+}
+
+CnC["send"] = function(pid, message) {
+  /*
+  sends datachannel request to participant
+  used for sending arbitrary commands, requests
+  */
+
+  return api.executeCommand(
+    "sendEndpointTextMessage",
+    pid, message);
+}
+
+CnC["get_caps"] = function(pid) {
+  /*
+  request capabilities from participant
+
+  if datachannel-capable, participant should
+    respond with: "SET_REMOTE_CAPS"
+  */
+
+  CnC.send(pid, "GET_CAPS");
+}
+
+/* 
+
+custom handlers for messages received via:
+
+* datachannel
+* chat messages
+
+dev: should implement logic only, ui updates are separate
+
+*/
+
+function handle_command_message(str, src) {
+  /* 
+  simple parser for command messages
+    format: <command> <param1> <param2> <...>
+  
+  dev: argument splitting is done by spaces,
+    use appropriate transport encoding 
+    when you need to send more complex 
+    parameters such as space-separated
+    strings, json, etc
+  */
+
+  var message = str.split(/ +/);
+  if (message.length <= 0) return false;
+
+  // get the "callable", i.e. associated function
+  callable = false;
+  for (var i=0; i<Commands.length; i++) {
+    var command = Commands[i];
+    if (command["name"] == message[0]) {
+        callable = command["callable"];
+        break;
+    }
+  }
+  if (!callable) {
+    console.log(
+      "invalid command", message, "source = ", src);
+    return false;
+  }
+
+  // check whether command is allowed
+  if (command["allowed"] && !command["allowed"]()) return false;
+
+  // execute command
+  var command = message.shift();
+  callable(...message, src);
+
+  return true;
+}
+
+function handle_message_to_self(e) {
+  /*
+  handle chat message which @mention self
+    and treat as a command message
+
+  note: the @mention keyword is removed
+
+  return true if treated as command message,
+    false if no action was taken
+  */
+
+  var str = e.message,
+      src = e.from;
+
+  // dev: accounts with no display name cannot be mentioned
+  var displayName = api.getDisplayName(api._myUserID);
+  if (!displayName) return false;
+
+  var normalised = displayName.replace(
+          /[^A-Za-z0-9\-\.\_]/g, "").toLowerCase();
+
+  var message = str.split(" "),
+      idx = message.indexOf("@" + normalised);
+
+  if (idx <= -1) return false;
+
+  message.splice(idx, 1);
+  message = message.join(" ");
+
+  handle_command_message(message, src);
+
+  return true;
+}
+
+function handle_chat_message(e) {
+  if (e.from != api._myUserID) {
+    // only process chats from others
+    received_chat_message(e);
+  }
+}
+
+/* 
+ui: dashboard
+*/
+
+function show_chat_message_in_recent_chats(jitsiData) {
+  /*
+  render to recentMessages
+  cleanup older messages
+  */
+
+  var li = document.createElement("li");
+  li.classList.add("badge", "small");
+
+  // ensure nick/message properly encoded as text
+  li.textContent = jitsiData.nick + ": " + jitsiData.message;
+
+  recentMessages.prepend(li);
+
+  while(recentMessages.children.length > 5) {
+    recentMessages.removeChild(
+        recentMessages.children[recentMessages.children.length - 1]);
+  }
+}
+
+function show_chat_message_as_bubble(jitsiData) {
+  /*
+  render as notification bubble
+  ensure nick/message properly encoded as text
+  */
+
+  var span = document.createElement("span"),
+      nick = false,
+      message = false;  
+  
+  span.innerText = jitsiData.nick;
+  nick = span.innerHTML;
+
+  span.innerText = jitsiData.message;
+  message = span.innerHTML;
+
+  bubbles_notify(nick + ": " + message, "chat");
+}
+
+function workaround_dismiss_pending_chats(){
+  // XXX: rapidly toggleChat to clear pending messages
+  api.executeCommand("toggleChat");
+  api.executeCommand("toggleChat");
+}
+
+function received_chat_message(jitsiData) {
+  if (Settings["acceptRemoteCommands"])
+    workaround_dismiss_pending_chats();
+
+  // render to simple dashboard
+  show_chat_message_in_recent_chats(jitsiData);
+
+  // render as notification bubbles
+  show_chat_message_as_bubble(jitsiData);
+}
+
+function remote_caps_clear() {
+  /*
+  utility function to reset mini remote control panel when 
+    the selected participant for remote control goes away
+  */
+
+  remoteControl.innerHTML = remoteControl_original;
+  remoteId.innerHTML = remoteId_original;
+  remote_caps_render["active"] = false;
+}
+
+function remote_caps_render(CAPS, src) {
+  /*
+  converts URIencoded CAPS to json
+    and renders mini remote control panel
+
+  dev: state persisted via function property:
+    "active"
+  */
+
+  var caps = JSON.parse(decodeURIComponent(CAPS)),
+      html = "";
+
+  for (var i=0; i<caps.length; i++) {
+    var item = caps[i];
+
+    if (item.constructor == Object) {
+      var label = item["label"],
+          command = item["command"],
+          options = item["options"];
+
+      html += '<div class="small control-group">'
+              + '<label>' + label + '</label>';
+
+      options.forEach(function(opt){
+        var option_label = opt["label"],
+            params = opt["params"],
+            full = command + " " + params;
+
+            html += ''
+              + '<button onclick="'
+                + "javascript: "
+                  + "CnC.send('"
+                    + src + "', '"
+                    + full + "')"
+              + '">'
+              + option_label
+              + '</button>';
+      });
+    }
+    html += '</div>';
+  }; // end: for(caps)
+
+  remoteControl.innerHTML = html;
+  remoteId.innerHTML = src;
+
+  arguments.callee["active"] = src;
+}
+
+function detect_idle() {
+  /*
+  handles prolonged empty rooms
+
+  enabled when:
+  * remote commands enabled
+  * idleSeconds >= 10
+
+  dev: state persisted via function property:
+    "idle_notify", "idle_since", "idle_entered"
+  */ 
+
+  if (Settings["idleSeconds"] < 10) return false;
+
+  if (!Settings["acceptRemoteCommands"]) return false;
+
+  var idle_threshold = Settings["idleSeconds"] * 1000,
+      notify_ms = 20000,
+      callee = arguments.callee,
+      ts_now = (new Date()).getTime(),
+      secs_idle = 0,
+      base_url = "http://localhost:" + Settings["portNumber"], 
+      present = api.getNumberOfParticipants() - 1;
+  
+  if (callee["idle_since"])
+    secs_idle = Math.round(
+      (ts_now - callee["idle_since"]) / 1000);
+
+  if (present <= 0) {
+    // MODE: INACTIVE
+    if (!callee["idle_since"]) {
+      // MODE: INACTIVE (first entry)
+      // record timestamp, init vars (once-off)
+      callee["idle_since"] = ts_now;
+      callee["idle_notify"] = notify_ms;
+      callee["idle_entered"] = false;
+    } else if (ts_now - callee["idle_since"] > idle_threshold) {
+      // MODE: IDLE
+      if (!callee["idle_entered"]) {
+        // notify when entering idle mode (once-off)
+        callee["idle_entered"] = true;
+        bubbles_notify("entering idle mode", "status");
+        api.executeCommand("subject", "idle mode");
+        // mute everything (once-off)
+        CnC.SET_MIC_MUTE(1, false);
+        CnC.SET_CAM_MUTE(1, false);
+      }
+      if (Settings["portNumber"] > 0) {
+        // report idle status to localrpc (continuously)
+        var url = base_url + "/idling/yes/" + secs_idle;
+        timeoutableFetch(url, {timeout: 1500})
+          .catch(err => {
+            console.log("timeoutableFetch", err.message, url);
+          });
+      }
+    } else if (ts_now - callee["idle_since"] > callee["idle_notify"]) {
+      // MODE: INACTIVE (waiting for IDLE or ACTIVE)
+      // notify as we get closer to idle
+      bubbles_notify(
+        "idling in "
+        + Math.round((idle_threshold - callee["idle_notify"]) / 1000)
+        + " secs", "status");
+      callee["idle_notify"] += notify_ms;
+    }
+    // else (not yet pass idle_threshold, idle_notify)
+  } else {
+    // MODE: ACTIVE
+    if (callee["idle_entered"]) {
+      // notify when leaving idle mode (once-off)
+      bubbles_notify("left idle mode", "status");      
+      // unmute everything (once-off)
+      // CnC.SET_MIC_MUTE(0, false);
+      // CnC.SET_CAM_MUTE(0, false);
+      // alternative: rely on autoUnmute
+      auto_unmute.either_muted = false;
+    }
+    if (Settings["portNumber"] > 0) {
+      // report active status to localrpc (continuously)
+      var url = base_url + "/idling/no/" + secs_idle;
+      timeoutableFetch(url, {timeout: 1500})
+        .catch(err => {
+          console.log("timeoutableFetch", err.message, url);
+        });
+    }
+    // reset all flags (continuously)
+    callee["idle_since"] = false;
+    callee["idle_notify"] = notify_ms;
+    callee["idle_entered"] = false;
+  }
+}
+
+function auto_unmute() {
+  /*
+  automatically unmute video and audio once 
+    Settings["autoUnmuteSeconds"] has elapsed
+
+  notes:
+  * useful when running unattended
+  * does not run if idle detected,
+    re: detect_idle()
+
+  dev: state persisted via function property:
+    "either_muted"
+  */
+
+  var callee = arguments.callee;
+
+  // check if disabled 
+  if (Settings["autoUnmuteSeconds"] < 0) {
+    callee.either_muted = false;
+    return false;
+  } 
+  
+  // disable if system is idle
+  if (detect_idle["idle_entered"]) {
+    callee.either_muted = false;
+    return false;
+  }
+
+  // disable if nobody around
+  if ((api.getNumberOfParticipants() - 1) <= 0) {
+    callee.either_muted = false;
+    return false;
+  }
+
+  var max_ms = Settings["autoUnmuteSeconds"] * 1000,
+      notify_ms = 5000;
+
+  Promise.all([
+      api.isAudioMuted(),
+      api.isVideoMuted()
+    ]).then(values => {
+      if (values[0] || values[1]) {
+        var ts_now = (new Date()).getTime(),
+            items = [];
+        if (values[0]) items.push("audio");
+        if (values[1]) items.push("video");
+        if (callee.either_muted) {
+          var elapsed = ts_now - callee.either_muted;
+          if (elapsed > max_ms) {
+            CnC.SET_MIC_MUTE(0, false);
+            CnC.SET_CAM_MUTE(0, false);
+            callee.either_muted = false;
+            bubbles_notify("auto-unmute: you're live!", "status");
+            api.executeCommand("subject", "LIVE");
+          } else if (elapsed > callee.either_notify) {
+            var secs_left = Math.round((max_ms - elapsed) / 1000);
+            bubbles_notify(
+              "auto-unmute: live in "
+              + secs_left + " "
+              + "secs", "status");
+            api.executeCommand("subject", "live in " + secs_left + "s");
+            callee.either_notify += notify_ms;
+          }
+        } else {
+          callee.either_muted = ts_now;
+          callee.either_notify = notify_ms;
+          var muted = items.join(" and ");
+          bubbles_notify(
+            "auto-unmute: "
+            + muted + " "
+            + "muted", "status");
+          api.executeCommand("subject", "not live");
+        }  
+      } else {
+        api.executeCommand("subject", "LIVE");
+      }           
+    });
+}
+
+function refresh_participants() {
+  /*
+  scan through list of participants from api
+  update participants list ui component
+  also track previous-selected id for remote control (rc)
+  */
+
+  // track previously selected rc participant id
+  //  and whether still active as a participant
+  var rid_active = remote_caps_render["active"],
+      rid_found = false;
+
+  // show count of participants, excluding self
+  participantsCount.innerHTML = Math.max(
+    0, api.getNumberOfParticipants() - 1);
+
+  Object.keys(api_participants()).forEach(function(pid){
+    // don't list myself as participant
+    if (pid == api._myUserID) return true;
+
+    // participant previously selected for remote control and active
+    if (rid_active && rid_active == pid) rid_found = true;
+
+    // render participant in list, if not previously rendered
+
+    var classNamePid = "participant-" + pid
+        classNames = "badge small participant " + classNamePid,
+        exists = Participants.querySelector("." + classNamePid);
+
+    if (!exists) {
+      Participants.innerHTML += ''
+        + '<li '
+          + 'class="' + classNames + '" '
+          + 'data-pid="' + pid + '" '
+        + 'onclick="'
+          + "javascript: CnC.get_caps('" + pid + "');"
+        + '">'
+        + guaranteed_safe_nick(pid)
+        + '</li>';
+    }
+
+  });
+
+  Participants.querySelectorAll(".participant")
+    .forEach(function(el){
+      // remove participants that are no longer in the api
+      // may have hung-up/disconnected
+      if (!(el.dataset.pid in api_participants()))
+        Participants.removeChild(el);
+    });
+
+  // clear remote controls if the active rid is not found
+  // may have hung-up/disconnected
+  if (!rid_found) remote_caps_clear();
+}
+
+function ping_participants() {
+  /*
+  checks if any participant is datachannel-capable
+    also checks last response (if any) and updates css
+  note: PONG updates "data-responded"
+  */
+  Participants.querySelectorAll(".participant")
+    .forEach(function(el){
+      el.classList.remove("responded");
+      if ("responded" in el.dataset) {
+        var diff = (new Date()).getTime() - el.dataset.responded;
+        if (diff <= 60000) el.classList.add("responded");
+      }
+      CnC.send(el.dataset.pid, "PING");
+    });
+}
+
+function toggle_bottom_panel() {
+  var classes = document.querySelector("body").classList; 
+  classes.toggle("cnc-hidden");
+  settings_set("hideBottomPanel", classes.contains("cnc-hidden"));
+}
+
+/*
+
+ui: notification bubbles 
+
+renders html in a "bubble" that sinks to 
+the  bottom of the screen as it gets older 
+
+*/
+
+var animation_bubbles = false;
+
+function bubbles_notify(html, css) {
+  /*
+  add bubble notification
+  dev: ensure that html is sanitised!
+  */
+
+  if (!html) html = "no html was supplied";
+
+  // prevent duplicated messages
+  //  seen when ending calls
+  if (arguments.callee["previousHTML"] == html) return false;
+  arguments.callee["previousHTML"] = html;
+
+  var bubble = document.createElement("div"),
+      classes = ["frame"];
+  if (css) classes.push(css);
+  bubble.setAttribute("class", "bubble");
+  bubble.setAttribute("style", "margin-top:5px;");
+  bubble.innerHTML = ''
+      + '<div class="' + classes.join(" ") + '">' 
+        + html 
+      + '</div>';
+  railBubbles.appendChild(bubble);  
+
+  setTimeout(function(){
+    // add class after few frames passed,
+    // allowing max-height transition to work
+    bubble.classList.add("show");
+    if (animation_bubbles) {
+      // debounce animation
+      clearInterval(animation_bubbles);
+      animation_bubbles = false;
+    }
+    // match interval with margin css transition 
+    //  duration for smooth animation 
+    animation_bubbles = setInterval(
+      animate_bubble_notifications, 3000);
+  }, 100);
+}
+
+function animate_bubble_notifications() {
+  // newest .bubble is the latest, most recent
+  var lastchild = railBubbles
+    .querySelector(".bubble:last-child");
+
+  if (lastchild) {
+    // css transition for margin used to emulate smooth scroll
+    var marginTop = parseInt(lastchild.style.marginTop);
+    marginTop = (marginTop + 90);
+    lastchild.style.marginTop = marginTop + "px";
+  }
+  
+  while (true) {
+    // oldest .bubble is the first
+    var firstchild = railBubbles
+      .querySelector(".bubble:first-child");
+
+    if (firstchild) {
+      var offset_top = firstchild.getBoundingClientRect().top 
+        - firstchild.offsetParent.getBoundingClientRect().top;
+
+      if (offset_top > get_vh()) {
+        railBubbles.removeChild(firstchild);
+        continue;
+      }
+    }
+    break;
+  }
+}
+
+/* 
+initialise user interface components
+debug: add here if jitsi init not required
+*/
+
+remote_caps_clear();
+
+if (Settings["hideBottomPanel"]) toggle_bottom_panel();
+
+/*
+ensure that roomName is supplied...
+last chance to halt execution before jitsi init!
+*/
+
+if (!("roomName" in Settings) || !Settings["roomName"])
+  terminate_with_message(
+    "missing <code>?roomName=&lt;room-name&gt;</code>");
+
+/*
+
+initialise jitsi meet via frame api
+
+references:
+* https://jitsi.github.io/handbook/docs/dev-guide/dev-guide-iframe
+* https://github.com/jitsi/jitsi-meet/blob/master/config.js
+* https://github.com/jitsi/jitsi-meet/blob/master/interface_config.js
+
+*/
+
+const domain = 'meet.jit.si';
+const options = {
+  roomName: Settings["roomName"],
+  width: "100%",
+  height: "100%",
+  configOverwrite: {
+    enableNoisyMicDetection: false,
+    enableCalendarIntegration: false
+  },
+  interfaceConfigOverwrite: {
+    DISABLE_VIDEO_BACKGROUND: true,
+    MOBILE_APP_PROMO: false,
+    HIDE_INVITE_MORE_HEADER: true
+  },
+  parentNode: Jitsi
+};
+
+const api = new JitsiMeetExternalAPI(domain, options);
+
+// the api returns ALL chat messages, including messages
+// before the current client joins - therefore, ignore
+// the previous chat messages to avoid confusion/clutter
+var IGNORE_CHAT_MESSAGES = true;
+
+// respond to jitsi iframe api events
+
+var INTERVALS = [];
+
+function clearTasks() {
+  // clear intervals
+  for (var i=0; i<INTERVALS.length; i++)
+    if (INTERVALS[i]) {
+      clearInterval(INTERVALS[i]);
+      INTERVALS[i] = false;
+    };
+  INTERVALS = [];
+};
+
+function stop_and_reload() {
+  clearTasks();
+
+  try {
+    terminate_with_message("disconnected", "boing!");
+  } catch (e) { /* don't raise */ };
+
+  if (!Settings["acceptRemoteCommands"]) return true;
+  if (Settings["idleSeconds"] < 10) return true;
+
+  bubbles_notify(
+    "disconnected, auto-reload in "
+    + Settings["idleSeconds"] + " secs", 
+    "status");
+
+  var t = 0;
+  setInterval(function(){
+    t += 1;
+    if (t % 10 == 0) {
+      bubbles_notify(
+        "reload in "
+          + (Settings["idleSeconds"] - t)
+          + " secs",
+        "status");
+    }
+    if (t >= Settings["idleSeconds"])
+      window.location.reload(true);
+  }, 1000);
+
+  return true;
+};
+
+function api_participants() {
+  /*
+  retrieve and cache participants from jitsi api
+  */
+
+  var participants = api._participants,
+      pids = Object.keys(participants),
+      callee = arguments.callee;
+
+  for (var i=0; i<pids.length; i++) {
+    var pid = pids[i];
+
+    // re-cache each participant
+    // this way we don't have to handle name changes
+    if (!callee["cache"]) callee["cache"] = {};
+    callee["cache"][pid] = {
+      "displayName": participants[pid].displayName
+    }
+  }
+
+  return participants;
+}
+
+function guaranteed_safe_nick(pid) {
+  /*
+  returns a "safe" nickname
+    displayName > cached displayName > id
+  */
+
+  var nick = "user " + pid,
+      displayName = api.getDisplayName(pid),
+      cached = api_participants["cache"][pid];
+
+  if (!displayName) {
+    if (cached) {
+      displayName = cached["displayName"];
+    } else {
+      return nick;
+    }
+  }
+  
+  var span = document.createElement("span");
+  span.innerText = displayName;
+  return span.innerHTML;      
+}
+
+api.on("participantJoined", function(jitsiData){
+  bubbles_notify(
+    "<b>" + guaranteed_safe_nick(jitsiData.id) + "</b> "
+    + "in room", "join");
+});
+
+api.on("participantLeft", function(jitsiData){
+  var pid = jitsiData.id;
+
+  bubbles_notify(
+    "<b>" + guaranteed_safe_nick(pid) + "</b> "
+    + "left", "left");
+
+  setTimeout(function(){
+    // workaround for "bug" where participantLeft
+    //  fires 2x when remote user ends call
+    // this ensures the cached records persists 
+    //  long enough for the user name to be retrieved
+    delete api_participants["cache"][pid];
+  }, 3000);
+});
+
+api.on("endpointTextMessageReceived", function(e){
+  var src = e.data.senderInfo["id"],
+      str = e.data.eventData["text"];
+
+  handle_command_message(str, src);
+});
+
+api.on("incomingMessage", function(e){
+  if (IGNORE_CHAT_MESSAGES) {
+    console.log("ignoring chat message", e);
+    return false;
+  }
+
+  var processed_by_self = handle_message_to_self(e);
+  if (!processed_by_self) {
+    // (potential) command messages are hidden from
+    //  handler (and display) to prevent ui clutter 
+    handle_chat_message(e);
+  }
+});
+
+api.on("videoConferenceJoined", function(e){
+  if (Settings["acceptRemoteCommands"])
+    workaround_dismiss_pending_chats();
+
+  setTimeout(function(){
+    IGNORE_CHAT_MESSAGES = false;
+  }, 2000);
+
+  clearTasks();
+
+  INTERVALS.push(setInterval(refresh_participants, 1500));
+  INTERVALS.push(setInterval(ping_participants, 4000));
+  INTERVALS.push(setInterval(auto_unmute, 2000));
+  INTERVALS.push(setInterval(detect_idle, 5000));
+});
+
+api.on("participantKickedOut", function(jitsiData){
+  if (jitsiData.kicked.local) {
+    stop_and_reload();
+  }
+});
+
+api.on("readyToClose", function(){
+  stop_and_reload();
+  api.dispose();
+});
+
+/* 
+DEBUG FUNCTIONALITY
+debug: add here if successful jitsi init required
+*/
+
+function debug_send_datachannel_message(){
+  Object.keys(api_participants()).forEach(function(pid){
+    CnC.send(pid, new Date() + " " + "HELLO WORLD!");
+  });
+}
+
+</script>
+</body>
+</html>
