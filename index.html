@@ -398,18 +398,24 @@ body.has-error .on-error.flex-col { display: flex; }
          flex-col
          flex-align-center
          flex-justify-center">
-  <h2>
-    <span id="halt-title">whoops!</span>
-  </h2>
   <p>
     <strong>
-      <span id="halt-message">something bad happened</span>
+      [ <span id="halt-message">something bad happened</span> ]
     </strong>
+  </p>
+  <p>
+    <input id="input-room-name" type="text" placeholder="room name" />
+    <button id="button-start-meeting">
+      start
+    </button>
   </p>
   <p class="small text-center">
     <a href="https://kinabalucoders.org">Kinabalu Coders</a>
     &middot;
     <code>#KitaBikin</code>
+    <br />
+    <br />
+    hosted on <a href="https://github.com/jitcnc/">GitHub</a>
     &middot;
     powered by <a href="https://meet.jit.si/">meet.jit.si</a>
   </p>
@@ -484,17 +490,20 @@ var // ui components
     Jitsi = document.querySelector('#jitsi-frame'),
 
     // settings
+    inputRoomName = document.querySelector("#input-room-name"),
     checkboxAcceptRemote = document.querySelector('#checkbox-accept-remote'),
     inputPortNumber = document.querySelector('#input-port-number'),
     inputAutoUnmuteSeconds = document.querySelector("#input-autounmute-seconds"),
     inputIdleSeconds = document.querySelector("#input-idle-seconds"),
 
+    // buttons with no-inline events
+    buttonStartMeeting = document.querySelector("#button-start-meeting"),
+
     // cache some content (for visual reset)
     remoteId_original = remoteId.innerHTML,
     remoteControl_original = remoteControl.innerHTML;
 
-function terminate_with_message(message, title){
-  if (title) document.querySelector("#halt-title").innerHTML = title;
+function terminate(message){
   document.querySelector("#halt-message").innerHTML = message;
   document.querySelector("body").classList.add("has-error");
   throw new Error(message);
@@ -583,8 +592,17 @@ if (!("hideBottomPanel" in Settings))
 delete Settings["roomName"];
 
 // Settings can be overridden via url query parameters
+// fragment > searchparams
 
-var inQueryString = new URLSearchParams(window.location.search);
+var useParams = false;
+if (window.location.search) useParams = window.location.search;
+var hashParams = location.hash.slice(1).split("?");
+    hashRoomName = hashParams.shift(),
+    hashParams = hashParams.join("?");
+if (hashRoomName) Settings["roomName"] = hashRoomName;
+if (hashParams) useParams = hashParams;
+
+var inQueryString = new URLSearchParams(useParams);
 
 var Params=[
   {"name": "roomName", "type": "single"},
@@ -609,6 +627,9 @@ Params.forEach(function(obj){
 validate all Settings
 also add DOM handlers for related DOM form elements
 */
+
+// setting: roomName
+if (Settings["roomName"]) inputRoomName.value = Settings["roomName"];
 
 // setting: acceptRemoteCommands
 checkboxAcceptRemote.checked = valid_boolean(
@@ -1430,14 +1451,25 @@ remote_caps_clear();
 
 if (Settings["hideBottomPanel"]) toggle_bottom_panel();
 
+function start_meeting() {
+  if (inputRoomName.value) {
+    window.location.hash = inputRoomName.value;
+    window.location.reload(true);
+  }
+}
+
+buttonStartMeeting.onclick = start_meeting;
+inputRoomName.onkeyup = function(event){
+  if (event.keyCode == 13) start_meeting();
+};
+
 /*
 ensure that roomName is supplied...
 last chance to halt execution before jitsi init!
 */
 
 if (!("roomName" in Settings) || !Settings["roomName"])
-  terminate_with_message(
-    "missing <code>?roomName=&lt;room-name&gt;</code>");
+  terminate("supply room name");
 
 /*
 
@@ -1492,7 +1524,7 @@ function stop_and_reload() {
   clearTasks();
 
   try {
-    terminate_with_message("disconnected", "boing!");
+    terminate("disconnected");
   } catch (e) { /* don't raise */ };
 
   if (!Settings["acceptRemoteCommands"]) return true;
