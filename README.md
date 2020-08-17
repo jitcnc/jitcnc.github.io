@@ -1,6 +1,6 @@
 # documentation
 
-* [https://github.com/jitcnc/jitcnc.github.io/wiki](wiki)
+* [wiki](https://github.com/jitcnc/jitcnc.github.io/wiki)
 
 # mirrors
 
